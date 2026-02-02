@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-deep-blue-700;
+  }
+  
+  body {
+    @apply bg-deep-blue-950 text-white antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  ::selection {
+    @apply bg-neon-purple-500/40 text-white;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-deep-blue-900;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-neon-purple-600 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-neon-purple-500;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply relative px-8 py-4 bg-gradient-to-r from-neon-purple-500 to-cyber-blue 
+           text-white font-semibold rounded-xl overflow-hidden transition-all duration-300
+           hover:shadow-[0_0_30px_rgba(176,26,255,0.5)] hover:scale-105
+           active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 border-2 border-neon-purple-500/50 text-neon-purple-300
+           rounded-xl font-medium transition-all duration-300
+           hover:bg-neon-purple-500/10 hover:border-neon-purple-400
+           hover:shadow-[0_0_20px_rgba(176,26,255,0.3)];
+  }
+
+  .card-glass {
+    @apply bg-deep-blue-800/50 backdrop-blur-xl border border-deep-blue-700/50
+           rounded-2xl shadow-2xl;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 bg-deep-blue-900/80 border border-deep-blue-600/50
+           rounded-xl text-white placeholder-deep-blue-400
+           focus:outline-none focus:border-neon-purple-500 focus:ring-2 
+           focus:ring-neon-purple-500/20 transition-all duration-300;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-cyber-blue via-neon-purple-400 to-cyber-pink
+           bg-clip-text text-transparent;
+  }
+
+  .glow-line {
+    @apply h-px bg-gradient-to-r from-transparent via-neon-purple-500 to-transparent;
+  }
+
+  .floating-orb {
+    @apply absolute rounded-full blur-3xl opacity-30 animate-float;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-gradient-x {
+    background-size: 200% 200%;
+    animation: gradient 8s linear infinite;
+  }
+}
