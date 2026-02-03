@@ -1,14 +1,31 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routes import survey, community
+from starlette.middleware.sessions import SessionMiddleware
+from .routes import survey, community, auth
+from .database import init_db
+from .config import settings
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Initialize database tables
+    await init_db()
+    yield
+    # Shutdown: cleanup if needed
+
 
 app = FastAPI(
     title="SanaPath AI API",
     description="Career & Project Matching Platform for AI-Sana Ecosystem",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
+
+# Session middleware for OAuth
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 
 # CORS configuration for frontend
 app.add_middleware(
@@ -20,6 +37,7 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth.router)
 app.include_router(survey.router)
 app.include_router(community.router)
 
