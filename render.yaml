@@ -5,8 +5,9 @@ services:
     env: python
     region: frankfurt
     plan: free
+    rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: "3.11"
@@ -15,4 +16,4 @@ services:
       - key: GEMINI_API_KEY
         sync: false
       - key: CORS_ORIGINS
-        value: "https://sanapath-ai.vercel.app,http://localhost:5173"
+        value: "https://sanapath-ai-frontend.vercel.app,http://localhost:5173"
