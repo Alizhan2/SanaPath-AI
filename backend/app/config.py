@@ -65,6 +65,7 @@ class Settings:
             "http://localhost:5173",
             "http://127.0.0.1:5173",
             "https://sanapath-ai.vercel.app",
+            "https://sanapath-ai-frontend.vercel.app",
             "https://*.vercel.app",
             self.FRONTEND_URL,
         ]
