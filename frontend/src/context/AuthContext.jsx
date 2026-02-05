@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  auth, 
-  onAuthStateChanged, 
-  signInWithGoogle, 
+import {
+  auth,
+  onAuthStateChanged,
+  signInWithGoogle,
   signInWithGithub,
   signInWithEmail,
   signUpWithEmail,
@@ -13,7 +13,7 @@ import axios from 'axios';
 
 const AuthContext = createContext(null);
 
-const API_URL = 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
       if (firebaseUser) {
         // Get Firebase ID token
         const token = await firebaseUser.getIdToken();
-        
+
         // Sync with backend
         try {
           const response = await axios.post(`${API_URL}/api/auth/firebase/verify`, {
@@ -36,10 +36,10 @@ export const AuthProvider = ({ children }) => {
             avatar_url: firebaseUser.photoURL,
             provider: firebaseUser.providerData[0]?.providerId || 'firebase'
           });
-          
+
           // Store backend token
           localStorage.setItem('token', response.data.access_token);
-          
+
           setUser({
             id: response.data.user.id,
             email: firebaseUser.email,

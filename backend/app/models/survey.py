@@ -34,10 +34,22 @@ class SurveyResponse(BaseModel):
     team_preference: str = Field(..., description="Solo or team preference")
     collaboration_tools: List[str] = Field(..., description="Familiar collaboration tools")
 
+class TaskResource(BaseModel):
+    title: str
+    url: str
+    type: str  # "docs", "video", "tutorial", "article"
+
+class TaskDetail(BaseModel):
+    name: str
+    description: str
+    steps: List[str]
+    resources: List[TaskResource]
+    estimated_time: str
+
 class ProjectRoadmapWeek(BaseModel):
     week: int
     title: str
-    tasks: List[str]
+    tasks: List[TaskDetail]
     deliverables: List[str]
 
 class ProjectRecommendation(BaseModel):

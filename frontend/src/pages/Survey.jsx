@@ -281,7 +281,7 @@ const Survey = ({ setRecommendations, setUserData }) => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const response = await fetch('http://localhost:8000/api/survey/submit', {
+      const response = await fetch('http://localhost:8001/api/survey/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

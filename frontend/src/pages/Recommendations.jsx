@@ -119,7 +119,7 @@ ${techTags} #AI #MachineLearning #SanaPathAI #AISana #BuildInPublic
     setPublishingProject(project.title);
     
     try {
-      const response = await fetch('http://localhost:8000/api/community/publish', {
+      const response = await fetch('http://localhost:8001/api/community/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

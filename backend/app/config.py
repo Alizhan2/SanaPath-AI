@@ -1,21 +1,25 @@
 import os
+import secrets
 from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class Settings:
-    # AI Settings
+    """Application settings with environment variable support."""
+    
+    # AI Settings - NO hardcoded keys!
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
-    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "AIzaSyBh2WvKx4Fte6q6UUU4YAElvQWtlrH5pto")
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")  # Must be set in .env
     AI_PROVIDER: str = os.getenv("AI_PROVIDER", "gemini")  # "openai", "anthropic", or "gemini"
-    AI_DEMO_MODE: bool = os.getenv("AI_DEMO_MODE", "false").lower() == "true"
+    AI_DEMO_MODE: bool = os.getenv("AI_DEMO_MODE", "true").lower() == "true"  # Default to demo mode
     
     # Database - SQLite by default, PostgreSQL for production
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./sanapath.db")
     
-    # JWT
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "sanapath-secret-key-change-in-production-2026")
+    # JWT - Generate secure key if not provided
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "") or secrets.token_urlsafe(32)
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
     
@@ -35,10 +39,45 @@ class Settings:
     FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:5173")
     BACKEND_URL: str = os.getenv("BACKEND_URL", "http://localhost:8000")
     
+    # CORS - Additional allowed origins (comma-separated)
+    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "")
+    
     # Demo mode - allows login without OAuth
     DEMO_MODE: bool = os.getenv("DEMO_MODE", "true").lower() == "true"
     
     # Environment
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")  # development, staging, production
     
+    @property
+    def is_production(self) -> bool:
+        return self.ENVIRONMENT == "production"
+    
+    @property
+    def has_ai_keys(self) -> bool:
+        """Check if any AI API key is configured."""
+        return bool(self.OPENAI_API_KEY or self.ANTHROPIC_API_KEY or self.GEMINI_API_KEY)
+    
+    @property
+    def cors_origins_list(self) -> list:
+        """Get list of allowed CORS origins."""
+        origins = [
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "https://sanapath-ai.vercel.app",
+            "https://*.vercel.app",
+            self.FRONTEND_URL,
+        ]
+        if self.CORS_ORIGINS:
+            origins.extend([o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()])
+        return list(set(origins))  # Remove duplicates
+
+
 settings = Settings()
+
+# Warn about missing configuration in production
+if settings.is_production:
+    if not os.getenv("SECRET_KEY"):
+        print("⚠️  WARNING: SECRET_KEY not set in production! Using generated key.")
+    if not settings.has_ai_keys and not settings.AI_DEMO_MODE:
+        print("⚠️  WARNING: No AI API keys configured and demo mode is off!")

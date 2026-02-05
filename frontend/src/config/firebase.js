@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
-import { 
-  getAuth, 
-  GoogleAuthProvider, 
+import {
+  getAuth,
+  GoogleAuthProvider,
   GithubAuthProvider,
   signInWithPopup,
   signInWithEmailAndPassword,
@@ -11,17 +11,30 @@ import {
   updateProfile
 } from 'firebase/auth';
 
-// Your web app's Firebase configuration
-// Uses environment variables in production, falls back to hardcoded values for development
+// Firebase configuration from environment variables
+// All values MUST be set in .env file - no hardcoded fallbacks for security
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCmoC9j7-N06C1ECL7MqZnz7C0GmNl9brI",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "sanapath-ai.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "sanapath-ai",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "sanapath-ai.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1085751442196",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1085751442196:web:121bfdb19895d05c3fa001",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-D1VXR7QDXY"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
+
+// Validate required Firebase config in development
+if (import.meta.env.DEV) {
+  const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'appId'];
+  const missingKeys = requiredKeys.filter(key => !firebaseConfig[key]);
+  if (missingKeys.length > 0) {
+    console.warn(
+      `⚠️ Missing Firebase config: ${missingKeys.join(', ')}\n` +
+      'Please set VITE_FIREBASE_* variables in frontend/.env file.\n' +
+      'See frontend/.env.example for reference.'
+    );
+  }
+}
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -41,3 +54,4 @@ export const updateUserProfile = (user, data) => updateProfile(user, data);
 
 export { auth, onAuthStateChanged };
 export default app;
+

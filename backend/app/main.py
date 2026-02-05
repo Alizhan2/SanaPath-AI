@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from .routes import survey, community, auth
-from .routers import projects
+from .routers import projects, users
 from .database import init_db
 from .config import settings
 
@@ -28,10 +28,10 @@ app = FastAPI(
 # Session middleware for OAuth
 app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 
-# CORS configuration for frontend
+# CORS configuration for frontend (uses dynamic origins from settings)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -42,6 +42,7 @@ app.include_router(auth.router)
 app.include_router(survey.router)
 app.include_router(community.router)
 app.include_router(projects.router)
+app.include_router(users.router)
 
 @app.get("/")
 async def root():

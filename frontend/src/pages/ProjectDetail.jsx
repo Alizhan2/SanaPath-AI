@@ -230,27 +230,109 @@ const ProjectDetail = () => {
                     >
                       {/* Tasks */}
                       <div className="mb-4">
-                        <h4 className="text-sm font-medium text-deep-blue-400 mb-2">Tasks:</h4>
-                        <div className="space-y-2">
-                          {week.tasks?.map((task, taskIndex) => (
-                            <button
-                              key={taskIndex}
-                              onClick={() => handleTaskToggle(weekIndex, taskIndex)}
-                              className="w-full flex items-center gap-3 p-3 rounded-lg bg-deep-blue-800/30 hover:bg-deep-blue-800/50 transition-colors text-left"
-                            >
-                              {completedTasks[`${weekIndex}-${taskIndex}`] ? (
-                                <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
-                              ) : (
-                                <Circle className="w-5 h-5 text-deep-blue-500 flex-shrink-0" />
-                              )}
-                              <span className={completedTasks[`${weekIndex}-${taskIndex}`] 
-                                ? 'text-deep-blue-400 line-through' 
-                                : 'text-white'
-                              }>
-                                {task}
-                              </span>
-                            </button>
-                          ))}
+                        <h4 className="text-sm font-medium text-deep-blue-400 mb-3">Tasks:</h4>
+                        <div className="space-y-4">
+                          {week.tasks?.map((task, taskIndex) => {
+                            // Check if task is detailed (object) or simple (string)
+                            const isDetailedTask = typeof task === 'object' && task !== null;
+                            const taskName = isDetailedTask ? task.name : task;
+                            const taskDescription = isDetailedTask ? task.description : null;
+                            const taskSteps = isDetailedTask ? task.steps : null;
+                            const taskResources = isDetailedTask ? task.resources : null;
+                            const taskTime = isDetailedTask ? task.estimated_time : null;
+
+                            return (
+                              <div key={taskIndex} className="rounded-xl bg-deep-blue-800/30 border border-deep-blue-700/50 overflow-hidden">
+                                {/* Task Header */}
+                                <button
+                                  onClick={() => handleTaskToggle(weekIndex, taskIndex)}
+                                  className="w-full flex items-center gap-3 p-4 hover:bg-deep-blue-800/50 transition-colors text-left"
+                                >
+                                  {completedTasks[`${weekIndex}-${taskIndex}`] ? (
+                                    <CheckCircle2 className="w-6 h-6 text-green-400 flex-shrink-0" />
+                                  ) : (
+                                    <Circle className="w-6 h-6 text-deep-blue-500 flex-shrink-0" />
+                                  )}
+                                  <div className="flex-1">
+                                    <span className={`font-medium ${completedTasks[`${weekIndex}-${taskIndex}`] 
+                                      ? 'text-deep-blue-400 line-through' 
+                                      : 'text-white'
+                                    }`}>
+                                      {taskName}
+                                    </span>
+                                    {taskTime && (
+                                      <span className="ml-3 text-xs px-2 py-0.5 rounded-full bg-deep-blue-700/50 text-deep-blue-300">
+                                        <Clock className="w-3 h-3 inline mr-1" />
+                                        {taskTime}
+                                      </span>
+                                    )}
+                                  </div>
+                                </button>
+
+                                {/* Task Details (for detailed tasks) */}
+                                {isDetailedTask && (
+                                  <div className="px-4 pb-4 border-t border-deep-blue-700/30">
+                                    {/* Description */}
+                                    {taskDescription && (
+                                      <p className="text-deep-blue-300 text-sm mt-3 mb-4">{taskDescription}</p>
+                                    )}
+
+                                    {/* Steps */}
+                                    {taskSteps && taskSteps.length > 0 && (
+                                      <div className="mb-4">
+                                        <h5 className="text-xs font-semibold text-neon-purple-400 uppercase tracking-wider mb-2">
+                                          Step-by-Step Guide:
+                                        </h5>
+                                        <ol className="space-y-2 list-decimal list-inside">
+                                          {taskSteps.map((step, stepIndex) => (
+                                            <li key={stepIndex} className="text-sm text-deep-blue-200 pl-2">
+                                              <span className="text-deep-blue-300">{step}</span>
+                                            </li>
+                                          ))}
+                                        </ol>
+                                      </div>
+                                    )}
+
+                                    {/* Resources */}
+                                    {taskResources && taskResources.length > 0 && (
+                                      <div>
+                                        <h5 className="text-xs font-semibold text-cyber-blue uppercase tracking-wider mb-2 flex items-center gap-1">
+                                          <BookOpen className="w-3 h-3" />
+                                          Learning Resources:
+                                        </h5>
+                                        <div className="flex flex-wrap gap-2">
+                                          {taskResources.map((resource, resIndex) => (
+                                            <a
+                                              key={resIndex}
+                                              href={resource.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:scale-105 ${
+                                                resource.type === 'video' 
+                                                  ? 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20' 
+                                                  : resource.type === 'docs' 
+                                                  ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20'
+                                                  : resource.type === 'tutorial'
+                                                  ? 'bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20'
+                                                  : 'bg-purple-500/10 text-purple-400 border border-purple-500/20 hover:bg-purple-500/20'
+                                              }`}
+                                            >
+                                              {resource.type === 'video' && '🎬'}
+                                              {resource.type === 'docs' && '📖'}
+                                              {resource.type === 'tutorial' && '📝'}
+                                              {resource.type === 'article' && '📰'}
+                                              {resource.title}
+                                              <ExternalLink className="w-3 h-3" />
+                                            </a>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
 
