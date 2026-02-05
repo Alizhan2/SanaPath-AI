@@ -26,6 +26,41 @@ const Recommendations = ({ recommendations, userData }) => {
   const [expandedProject, setExpandedProject] = useState(0);
   const [copiedLinkedIn, setCopiedLinkedIn] = useState(null);
   const [publishingProject, setPublishingProject] = useState(null);
+  const [startedProjects, setStartedProjects] = useState([]);
+
+  // Load started projects on mount
+  useState(() => {
+    const saved = JSON.parse(localStorage.getItem('userProjects') || '[]');
+    setStartedProjects(saved.map(p => p.title));
+  }, []);
+
+  const handleStartProject = (project) => {
+    // Create project with unique ID
+    const newProject = {
+      id: `project-${Date.now()}`,
+      ...project,
+      status: 'active',
+      currentWeek: 1,
+      completedTasks: {},
+      startedAt: new Date().toISOString()
+    };
+
+    // Save to localStorage
+    const savedProjects = JSON.parse(localStorage.getItem('userProjects') || '[]');
+    
+    // Check if already exists
+    if (savedProjects.some(p => p.title === project.title)) {
+      navigate('/dashboard');
+      return;
+    }
+    
+    savedProjects.push(newProject);
+    localStorage.setItem('userProjects', JSON.stringify(savedProjects));
+    setStartedProjects([...startedProjects, project.title]);
+    
+    // Navigate to project detail
+    navigate(`/project/${newProject.id}`);
+  };
 
   if (!recommendations) {
     return (
@@ -325,7 +360,8 @@ ${techTags} #AI #MachineLearning #SanaPathAI #AISana #BuildInPublic
                           </motion.button>
 
                           <motion.button
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-deep-blue-800/50 border border-deep-blue-700/50 text-deep-blue-200 font-medium hover:bg-deep-blue-700/50 transition-all"
+                            onClick={() => handleStartProject(project)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500/20 border border-green-500/50 text-green-400 font-medium hover:bg-green-500/30 transition-all"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                           >
@@ -349,11 +385,11 @@ ${techTags} #AI #MachineLearning #SanaPathAI #AISana #BuildInPublic
             transition={{ delay: 0.5 }}
           >
             <p className="text-deep-blue-400 mb-4">
-              Not finding what you're looking for?
+              Want to see your projects?
             </p>
-            <Link to="/survey">
+            <Link to="/dashboard">
               <button className="btn-secondary">
-                Retake Survey
+                Go to Dashboard
               </button>
             </Link>
           </motion.div>

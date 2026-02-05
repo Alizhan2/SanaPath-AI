@@ -10,9 +10,74 @@ from ..database import get_db
 from ..models.user import User
 from ..services.auth import create_access_token, get_current_user
 from ..services.oauth import oauth
+from pydantic import BaseModel, EmailStr
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
+
+# ===== FIREBASE AUTHENTICATION =====
+
+class FirebaseVerifyRequest(BaseModel):
+    token: str
+    email: EmailStr
+    name: str = "User"
+    avatar_url: str = None
+    provider: str = "firebase"
+
+
+@router.post("/firebase/verify")
+async def firebase_verify(request: FirebaseVerifyRequest, db: AsyncSession = Depends(get_db)):
+    """Verify Firebase token and create/get user in our database"""
+    # In production, you should verify the Firebase token with Firebase Admin SDK
+    # For now, we trust the token since it comes from Firebase client
+    
+    # Find or create user by email
+    result = await db.execute(select(User).where(User.email == request.email))
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        # Create new user
+        user = User(
+            email=request.email,
+            name=request.name,
+            avatar_url=request.avatar_url or f"https://api.dicebear.com/7.x/avataaars/svg?seed={request.email}",
+            provider=request.provider,
+            provider_id=f"firebase_{request.email}"
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+    else:
+        # Update user info if needed
+        if request.name and request.name != user.name:
+            user.name = request.name
+        if request.avatar_url and request.avatar_url != user.avatar_url:
+            user.avatar_url = request.avatar_url
+        if request.provider and request.provider != user.provider:
+            user.provider = request.provider
+        await db.commit()
+        await db.refresh(user)
+    
+    # Create JWT token for our backend
+    access_token = create_access_token(
+        data={"sub": user.uuid, "email": user.email},
+        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": user.uuid,
+            "email": user.email,
+            "name": user.name,
+            "avatar_url": user.avatar_url,
+            "provider": user.provider
+        }
+    }
+
+
+# ===== LEGACY OAUTH (keeping for backwards compatibility) =====
 
 @router.get("/login/github")
 async def login_github(request: Request):
@@ -188,3 +253,59 @@ async def get_me(user: User = Depends(get_current_user)):
 async def logout():
     """Logout (client should remove the token)"""
     return {"message": "Logged out successfully"}
+
+
+# ===== DEMO MODE ENDPOINTS =====
+
+from pydantic import BaseModel, EmailStr
+
+class DemoLoginRequest(BaseModel):
+    email: EmailStr
+    name: str = "Demo User"
+
+
+@router.post("/demo/login")
+async def demo_login(request: DemoLoginRequest, db: AsyncSession = Depends(get_db)):
+    """Demo login - no OAuth required, just email"""
+    if not settings.DEMO_MODE:
+        raise HTTPException(status_code=403, detail="Demo mode is disabled")
+    
+    # Find or create demo user
+    result = await db.execute(select(User).where(User.email == request.email))
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        user = User(
+            email=request.email,
+            name=request.name,
+            provider="demo",
+            provider_id=f"demo_{request.email}",
+            avatar_url=f"https://api.dicebear.com/7.x/avataaars/svg?seed={request.email}"
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+    
+    # Create JWT token
+    access_token = create_access_token(
+        data={"sub": user.uuid, "email": user.email},
+        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": user.uuid,
+            "email": user.email,
+            "name": user.name,
+            "avatar_url": user.avatar_url,
+            "provider": user.provider
+        }
+    }
+
+
+@router.get("/demo/status")
+async def demo_status():
+    """Check if demo mode is enabled"""
+    return {"demo_mode": settings.DEMO_MODE}

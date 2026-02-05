@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from .routes import survey, community, auth
+from .routers import projects
 from .database import init_db
 from .config import settings
 
@@ -40,6 +41,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(survey.router)
 app.include_router(community.router)
+app.include_router(projects.router)
 
 @app.get("/")
 async def root():

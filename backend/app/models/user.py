@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, ARRAY, Table
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, JSON, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from ..database import Base
@@ -10,7 +10,7 @@ project_collaborators = Table(
     Base.metadata,
     Column('user_id', Integer, ForeignKey('users.id'), primary_key=True),
     Column('project_id', Integer, ForeignKey('projects.id'), primary_key=True),
-    Column('joined_at', DateTime(timezone=True), server_default=func.now())
+    Column('joined_at', DateTime, server_default=func.now())
 )
 
 class User(Base):
@@ -24,16 +24,17 @@ class User(Base):
     name = Column(String, nullable=True)
     avatar_url = Column(String, nullable=True)
     
-    # OAuth info
-    provider = Column(String, nullable=False)  # "github" or "google"
-    provider_id = Column(String, nullable=False)
+    # Auth info - password for demo mode, OAuth for providers
+    password_hash = Column(String, nullable=True)
+    provider = Column(String, nullable=True)  # "github", "google", "demo"
+    provider_id = Column(String, nullable=True)
     
-    # Profile info (from survey)
+    # Profile info (from survey) - using JSON for SQLite compatibility
     university = Column(String, nullable=True)
-    programming_languages = Column(ARRAY(String), default=[])
+    programming_languages = Column(JSON, default=[])
     skill_level = Column(String, nullable=True)
     ai_ml_experience = Column(String, nullable=True)
-    interest_areas = Column(ARRAY(String), default=[])
+    interest_areas = Column(JSON, default=[])
     career_goal = Column(String, nullable=True)
     
     # Status
@@ -41,8 +42,8 @@ class User(Base):
     is_profile_complete = Column(Boolean, default=False)
     
     # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
     
     # Relationships
     owned_projects = relationship("Project", back_populates="owner", cascade="all, delete-orphan")
@@ -52,6 +53,7 @@ class User(Base):
         back_populates="collaborators"
     )
     recommendations = relationship("Recommendation", back_populates="user", cascade="all, delete-orphan")
+    user_projects = relationship("UserProject", back_populates="user", cascade="all, delete-orphan")
 
 
 class Project(Base):
@@ -64,8 +66,8 @@ class Project(Base):
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     difficulty_level = Column(String, nullable=True)
-    tech_stack = Column(ARRAY(String), default=[])
-    tags = Column(ARRAY(String), default=[])
+    tech_stack = Column(JSON, default=[])
+    tags = Column(JSON, default=[])
     estimated_duration = Column(String, nullable=True)
     
     # Roadmap stored as JSON string
@@ -115,3 +117,46 @@ class Recommendation(Base):
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class UserProject(Base):
+    """
+    Tracks user's active/completed projects (started from recommendations)
+    """
+    __tablename__ = "user_projects"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    uuid = Column(String, unique=True, default=lambda: str(uuid.uuid4()))
+    
+    # User who started this project
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user = relationship("User", back_populates="user_projects")
+    
+    # Project info (copied from recommendation or AI-generated)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    category = Column(String, nullable=True)  # CV, NLP, etc.
+    difficulty = Column(String, nullable=True)
+    tech_stack = Column(JSON, default=[])
+    
+    # Learning goals & skills
+    learning_goals = Column(JSON, default=[])
+    skills_gained = Column(JSON, default=[])
+    
+    # Roadmap
+    roadmap = Column(JSON, default=[])  # List of weeks with tasks
+    
+    # Progress tracking
+    status = Column(String, default="active")  # active, completed, paused
+    progress_percent = Column(Integer, default=0)
+    current_week = Column(Integer, default=1)
+    completed_tasks = Column(JSON, default=[])  # List of completed task IDs
+    
+    # Time tracking
+    total_hours_spent = Column(Integer, default=0)
+    estimated_hours = Column(Integer, nullable=True)
+    
+    # Timestamps
+    started_at = Column(DateTime(timezone=True), server_default=func.now())
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())

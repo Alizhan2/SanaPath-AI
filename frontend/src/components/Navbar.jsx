@@ -10,7 +10,8 @@ import {
   Twitter,
   Linkedin,
   LogOut,
-  User
+  User,
+  LayoutDashboard
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -19,11 +20,19 @@ const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
-  const navLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'Survey', href: '/survey' },
-    { name: 'Community', href: '/community' },
-  ];
+  // Navigation links - Dashboard shown only for authenticated users
+  const navLinks = isAuthenticated 
+    ? [
+        { name: 'Home', href: '/' },
+        { name: 'Dashboard', href: '/dashboard' },
+        { name: 'Survey', href: '/survey' },
+        { name: 'Community', href: '/community' },
+      ]
+    : [
+        { name: 'Home', href: '/' },
+        { name: 'Survey', href: '/survey' },
+        { name: 'Community', href: '/community' },
+      ];
 
   const handleLogout = () => {
     logout();
@@ -106,6 +115,14 @@ const Navbar = () => {
                         <p className="text-sm text-deep-blue-400">Signed in as</p>
                         <p className="text-white font-medium truncate">{user?.email}</p>
                       </div>
+                      <Link
+                        to="/dashboard"
+                        onClick={() => setShowUserMenu(false)}
+                        className="w-full flex items-center gap-2 px-4 py-3 text-left text-deep-blue-200 hover:text-white hover:bg-deep-blue-800/50 transition-colors"
+                      >
+                        <LayoutDashboard className="w-4 h-4" />
+                        <span>Dashboard</span>
+                      </Link>
                       <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-2 px-4 py-3 text-left text-deep-blue-200 hover:text-white hover:bg-deep-blue-800/50 transition-colors"
@@ -169,6 +186,14 @@ const Navbar = () => {
                     )}
                     <span className="text-white">{user?.name}</span>
                   </div>
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setIsOpen(false)}
+                    className="w-full flex items-center gap-2 py-2 text-deep-blue-200 hover:text-white"
+                  >
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span>Dashboard</span>
+                  </Link>
                   <button
                     onClick={() => { handleLogout(); setIsOpen(false); }}
                     className="w-full flex items-center gap-2 py-2 text-deep-blue-200 hover:text-white"

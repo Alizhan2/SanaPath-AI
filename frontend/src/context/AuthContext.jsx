@@ -1,4 +1,14 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { 
+  auth, 
+  onAuthStateChanged, 
+  signInWithGoogle, 
+  signInWithGithub,
+  signInWithEmail,
+  signUpWithEmail,
+  logOut,
+  updateUserProfile
+} from '../config/firebase';
 import axios from 'axios';
 
 const AuthContext = createContext(null);
@@ -8,59 +18,122 @@ const API_URL = 'http://localhost:8000';
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (token) {
-      fetchUser();
-    } else {
+    // Listen for Firebase auth state changes
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // Get Firebase ID token
+        const token = await firebaseUser.getIdToken();
+        
+        // Sync with backend
+        try {
+          const response = await axios.post(`${API_URL}/api/auth/firebase/verify`, {
+            token,
+            email: firebaseUser.email,
+            name: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+            avatar_url: firebaseUser.photoURL,
+            provider: firebaseUser.providerData[0]?.providerId || 'firebase'
+          });
+          
+          // Store backend token
+          localStorage.setItem('token', response.data.access_token);
+          
+          setUser({
+            id: response.data.user.id,
+            email: firebaseUser.email,
+            name: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+            avatar_url: firebaseUser.photoURL,
+            provider: firebaseUser.providerData[0]?.providerId || 'firebase',
+            firebaseUser
+          });
+        } catch (err) {
+          console.error('Backend sync error:', err);
+          // Still allow user to use app with Firebase only
+          setUser({
+            id: firebaseUser.uid,
+            email: firebaseUser.email,
+            name: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+            avatar_url: firebaseUser.photoURL,
+            provider: firebaseUser.providerData[0]?.providerId || 'firebase',
+            firebaseUser
+          });
+        }
+      } else {
+        setUser(null);
+        localStorage.removeItem('token');
+      }
       setLoading(false);
-    }
-  }, [token]);
+    });
 
-  const fetchUser = async () => {
+    return () => unsubscribe();
+  }, []);
+
+  const loginWithGoogle = async () => {
+    setError(null);
     try {
-      const response = await axios.get(`${API_URL}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUser(response.data.user);
-    } catch (error) {
-      console.error('Error fetching user:', error);
-      logout();
-    } finally {
-      setLoading(false);
+      await signInWithGoogle();
+    } catch (err) {
+      setError(err.message);
+      throw err;
     }
   };
 
-  const loginWithGitHub = () => {
-    window.location.href = `${API_URL}/api/auth/login/github`;
+  const loginWithGithub = async () => {
+    setError(null);
+    try {
+      await signInWithGithub();
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
   };
 
-  const loginWithGoogle = () => {
-    window.location.href = `${API_URL}/api/auth/login/google`;
+  const loginWithEmail = async (email, password) => {
+    setError(null);
+    try {
+      await signInWithEmail(email, password);
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
   };
 
-  const handleAuthCallback = (newToken) => {
-    localStorage.setItem('token', newToken);
-    setToken(newToken);
+  const registerWithEmail = async (email, password, name) => {
+    setError(null);
+    try {
+      const { user: firebaseUser } = await signUpWithEmail(email, password);
+      if (name) {
+        await updateUserProfile(firebaseUser, { displayName: name });
+      }
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-    setUser(null);
+  const logout = async () => {
+    try {
+      await logOut();
+      localStorage.removeItem('token');
+      setUser(null);
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
   };
 
   const value = {
     user,
-    token,
     loading,
+    error,
     isAuthenticated: !!user,
-    loginWithGitHub,
     loginWithGoogle,
-    handleAuthCallback,
+    loginWithGithub,
+    loginWithEmail,
+    registerWithEmail,
     logout,
-    refreshUser: fetchUser
+    clearError: () => setError(null)
   };
 
   return (

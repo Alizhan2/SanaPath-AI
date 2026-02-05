@@ -7,6 +7,8 @@ import AuthCallback from './pages/AuthCallback';
 import Survey from './pages/Survey';
 import Recommendations from './pages/Recommendations';
 import Community from './pages/Community';
+import Dashboard from './pages/Dashboard';
+import ProjectDetail from './pages/ProjectDetail';
 
 function App() {
   const [recommendations, setRecommendations] = useState(null);
@@ -20,6 +22,8 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/project/:projectId" element={<ProjectDetail />} />
             <Route 
               path="/survey" 
               element={

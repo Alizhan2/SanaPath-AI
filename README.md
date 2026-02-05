@@ -1,220 +1,173 @@
-# SanaPath AI 🚀
+# 🚀 SanaPath AI - Career & Project Matching Platform
 
-> Career & Project Matching Platform for 60,000+ Students in the AI-Sana Ecosystem
+<div align="center">
+  <img src="https://img.shields.io/badge/React-18-blue?logo=react" />
+  <img src="https://img.shields.io/badge/FastAPI-0.109-green?logo=fastapi" />
+  <img src="https://img.shields.io/badge/Firebase-Auth-orange?logo=firebase" />
+  <img src="https://img.shields.io/badge/AI-GPT--4o%20%7C%20Claude-purple" />
+  <br/><br/>
+  <strong>Career & Project Matching Platform for 60,000+ Students in the AI-Sana Ecosystem</strong>
+</div>
 
-![SanaPath AI](https://img.shields.io/badge/SanaPath-AI-purple?style=for-the-badge)
-![React](https://img.shields.io/badge/React-18-blue?style=for-the-badge&logo=react)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.109-green?style=for-the-badge&logo=fastapi)
-![Tailwind](https://img.shields.io/badge/Tailwind-3.4-cyan?style=for-the-badge&logo=tailwindcss)
+---
 
-## 🌟 Features
+## ✨ Возможности
 
-- **Smart Onboarding**: Multi-step survey (15 questions) with beautiful progress tracking
-- **AI Recommendation Engine**: GPT-4o/Claude 3.5 powered project matching
-- **Personalized Roadmaps**: 4-week implementation plans for each project
-- **Community Hub**: Publish projects and find collaborators
-- **LinkedIn Export**: One-click "Project Started" post generation
-- **Modern UI**: Dark-themed, futuristic design with smooth animations
+- 🤖 **AI-рекомендации** — персонализированные проекты на основе интересов и навыков (OpenAI GPT-4o / Claude)
+- 📊 **4-недельные roadmaps** — структурированные планы с задачами и deliverables
+- 👥 **Сообщество** — поиск соавторов и публикация проектов
+- 🔐 **Аутентификация** — Google, GitHub, LinkedIn, Email через Firebase
+- 📱 **Личный кабинет** — отслеживание прогресса, streak, статистика
+- 🎨 **Современный UI** — темная тема, анимации Framer Motion
 
-## 🎨 Design
+---
 
-- **Theme**: Futuristic Academic
-- **Colors**: Deep Blue (#0a1628) + Neon Purple (#b01aff) + Cyber Blue (#00d4ff)
-- **Animations**: Framer Motion for smooth transitions
-- **Icons**: Lucide React
+## 🛠️ Технологии
 
-## 🛠️ Tech Stack
+| Frontend | Backend | Auth & AI |
+|----------|---------|-----------|
+| React 18 + Vite | FastAPI 0.109 | Firebase Auth |
+| Tailwind CSS 3.4 | SQLAlchemy + SQLite/PostgreSQL | OpenAI GPT-4o |
+| Framer Motion | Pydantic | Anthropic Claude |
+| React Router 6 | JWT Tokens | OAuth 2.0 |
 
-### Frontend
-- React.js 18
-- Tailwind CSS 3.4
-- Framer Motion
-- Lucide React Icons
-- React Router DOM
+---
+
+## 🚀 Быстрый старт
+
+### Клонирование
+
+```bash
+git clone https://github.com/Alizhan2/SanaPath-AI.git
+cd SanaPath-AI
+```
 
 ### Backend
-- FastAPI (Python)
-- OpenAI GPT-4o / Anthropic Claude 3.5
-- Pydantic validation
-- CORS middleware
 
-## 📦 Project Structure
+```bash
+cd backend
+python -m venv venv
+venv\Scripts\activate     # Windows
+# source venv/bin/activate  # Linux/Mac
+
+pip install -r requirements.txt
+cp .env.example .env
+# Отредактируйте .env - добавьте API ключи
+
+python -m uvicorn app.main:app --reload --port 8000
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+📍 Открыть: http://localhost:5173
+
+---
+
+## 🌐 Production Deployment
+
+### Backend → Railway
+
+1. [Railway.app](https://railway.app) → New Project → GitHub repo
+2. Root Directory: `backend`
+3. Environment variables:
+   ```
+   OPENAI_API_KEY=sk-...
+   SECRET_KEY=your-secret-key
+   FRONTEND_URL=https://your-frontend.vercel.app
+   AI_DEMO_MODE=false
+   ```
+4. Add PostgreSQL database (Railway auto-sets DATABASE_URL)
+
+### Frontend → Vercel
+
+1. [Vercel.com](https://vercel.com) → Import Project
+2. Root Directory: `frontend`
+3. Environment variables:
+   ```
+   VITE_API_URL=https://your-backend.railway.app
+   ```
+4. Deploy!
+
+### Custom Domain
 
 ```
-sanapath-ai/
+Vercel → Settings → Domains → Add Domain
+```
+
+Configure DNS:
+- A Record: `@` → Vercel IP
+- CNAME: `www` → `cname.vercel-dns.com`
+
+---
+
+## 🔑 API Keys Setup
+
+| Service | URL | Variable |
+|---------|-----|----------|
+| OpenAI | [platform.openai.com](https://platform.openai.com) | `OPENAI_API_KEY` |
+| Anthropic | [console.anthropic.com](https://console.anthropic.com) | `ANTHROPIC_API_KEY` |
+| Firebase | [console.firebase.google.com](https://console.firebase.google.com) | Frontend config |
+
+---
+
+## 📁 Project Structure
+
+```
+SanaPath-AI/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py              # FastAPI app entry point
-│   │   ├── config.py            # Configuration settings
-│   │   ├── models/
-│   │   │   └── survey.py        # Pydantic models
-│   │   ├── routes/
-│   │   │   ├── survey.py        # Survey endpoints
-│   │   │   └── community.py     # Community endpoints
-│   │   └── services/
-│   │       └── ai_engine.py     # LLM integration
+│   │   ├── main.py           # FastAPI app
+│   │   ├── config.py         # Settings
+│   │   ├── database.py       # SQLAlchemy
+│   │   ├── models/           # DB models
+│   │   ├── routes/           # API routes
+│   │   ├── routers/          # Additional routers
+│   │   └── services/         # AI engine & logic
 │   ├── requirements.txt
+│   ├── railway.toml
 │   └── .env.example
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── components/
-│   │   │   ├── Navbar.jsx
-│   │   │   └── Footer.jsx
-│   │   ├── pages/
-│   │   │   ├── Landing.jsx      # Homepage
-│   │   │   ├── Survey.jsx       # Multi-step form
-│   │   │   ├── Recommendations.jsx
-│   │   │   └── Community.jsx
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
+│   │   ├── components/       # Navbar, Footer, etc.
+│   │   ├── pages/            # Home, Survey, Dashboard, etc.
+│   │   ├── context/          # AuthContext
+│   │   ├── config/           # Firebase
+│   │   └── services/         # API client
 │   ├── package.json
-│   ├── tailwind.config.js
-│   └── vite.config.js
+│   ├── vercel.json
+│   └── .env.example
 │
 └── README.md
 ```
 
-## 🚀 Quick Start
+---
 
-### Prerequisites
-- Node.js 18+
-- Python 3.10+
-- OpenAI or Anthropic API key
+## 🎨 Design System
 
-### Backend Setup
-
-```bash
-# Navigate to backend
-cd backend
-
-# Create virtual environment
-python -m venv venv
-
-# Activate virtual environment
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Create .env file
-cp .env.example .env
-
-# Add your API key to .env
-# OPENAI_API_KEY=sk-your-key-here
-# or
-# ANTHROPIC_API_KEY=sk-ant-your-key-here
-# AI_PROVIDER=openai  # or "anthropic"
-
-# Run the server
-uvicorn app.main:app --reload --port 8000
-```
-
-### Frontend Setup
-
-```bash
-# Navigate to frontend
-cd frontend
-
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-```
-
-### Access the Application
-
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:8000
-- **API Docs**: http://localhost:8000/docs
-
-## 📡 API Endpoints
-
-### Survey
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/survey/submit` | Submit survey & get recommendations |
-| GET | `/api/survey/questions` | Get survey question structure |
-
-### Community
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/community/publish` | Publish project to community |
-| GET | `/api/community/projects` | List all community projects |
-| GET | `/api/community/projects/{id}` | Get specific project |
-| POST | `/api/community/projects/{id}/join` | Join a project |
-| POST | `/api/community/linkedin-post` | Generate LinkedIn post |
-
-## 🎯 Survey Questions (15 Total)
-
-### Step 1: Personal Information
-1. Name
-2. Email
-3. University (optional)
-
-### Step 2: Technical Skills
-4. Programming Languages (multi-select)
-5. Skill Level
-6. AI/ML Experience
-
-### Step 3: Interests & Focus
-7. Interest Areas in AI (multi-select)
-8. Preferred Project Type
-9. Industry Interest (multi-select)
-
-### Step 4: Goals & Learning
-10. Career Goal
-11. Learning Style
-
-### Step 5: Time & Collaboration
-12. Weekly Time Commitment
-13. Preferred Project Duration
-14. Team Preference
-15. Collaboration Tools (multi-select)
-
-## 🤖 AI Recommendation Response
-
-Each recommendation includes:
-- Project Title
-- Description
-- Difficulty Level (Beginner/Intermediate/Advanced/Expert)
-- Tech Stack
-- Estimated Duration
-- Learning Outcomes
-- 4-Week Roadmap with tasks & deliverables
-- Tags for discoverability
-
-## 🎨 Customization
-
-### Colors (tailwind.config.js)
-```javascript
-colors: {
-  'deep-blue': { /* ... */ },
-  'neon-purple': { /* ... */ },
-  'cyber': {
-    blue: '#00d4ff',
-    purple: '#b01aff',
-    pink: '#ff1a75',
-    green: '#00ff94',
-  }
-}
-```
-
-### AI Provider
-Change in `.env`:
-```env
-AI_PROVIDER=openai   # or "anthropic"
-```
-
-## 📝 License
-
-MIT License - Built for the AI-Sana Ecosystem
+- **Theme**: Futuristic Academic Dark
+- **Primary**: Deep Blue `#0a1628`
+- **Accent 1**: Neon Purple `#b01aff`
+- **Accent 2**: Cyber Blue `#00d4ff`
+- **Font**: Inter
 
 ---
 
-**Built with ❤️ for 60,000+ AI-Sana Students**
+## 📞 Contact
+
+- **GitHub**: [@Alizhan2](https://github.com/Alizhan2)
+- **Repository**: [SanaPath-AI](https://github.com/Alizhan2/SanaPath-AI)
+
+---
+
+<div align="center">
+  <strong>Made with ❤️ for AI-Sana Ecosystem</strong>
+  <br/>
+  <sub>60,000+ students building the future of AI</sub>
+</div>
