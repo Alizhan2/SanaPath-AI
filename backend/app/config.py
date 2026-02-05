@@ -7,8 +7,9 @@ class Settings:
     # AI Settings
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
-    AI_PROVIDER: str = os.getenv("AI_PROVIDER", "openai")  # "openai" or "anthropic"
-    AI_DEMO_MODE: bool = os.getenv("AI_DEMO_MODE", "true").lower() == "true"
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "AIzaSyBh2WvKx4Fte6q6UUU4YAElvQWtlrH5pto")
+    AI_PROVIDER: str = os.getenv("AI_PROVIDER", "gemini")  # "openai", "anthropic", or "gemini"
+    AI_DEMO_MODE: bool = os.getenv("AI_DEMO_MODE", "false").lower() == "true"
     
     # Database - SQLite by default, PostgreSQL for production
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./sanapath.db")

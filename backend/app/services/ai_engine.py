@@ -2,6 +2,7 @@ import json
 from typing import List
 from openai import OpenAI
 from anthropic import Anthropic
+import google.generativeai as genai
 from ..config import settings
 from ..models.survey import SurveyResponse, ProjectRecommendation, ProjectRoadmapWeek, RecommendationResponse
 
@@ -118,6 +119,57 @@ async def get_recommendations_anthropic(survey: SurveyResponse) -> Recommendatio
     )
     
     result = json.loads(response.content[0].text)
+    
+    recommendations = []
+    for rec in result["recommendations"]:
+        roadmap = [ProjectRoadmapWeek(**week) for week in rec["roadmap"]]
+        recommendations.append(ProjectRecommendation(
+            title=rec["title"],
+            description=rec["description"],
+            difficulty_level=rec["difficulty_level"],
+            tech_stack=rec["tech_stack"],
+            estimated_duration=rec["estimated_duration"],
+            learning_outcomes=rec["learning_outcomes"],
+            roadmap=roadmap,
+            tags=rec["tags"]
+        ))
+    
+    return RecommendationResponse(
+        student_name=survey.name,
+        recommendations=recommendations,
+        personalization_summary=result["personalization_summary"]
+    )
+
+
+async def get_recommendations_gemini(survey: SurveyResponse) -> RecommendationResponse:
+    """Get recommendations using Google Gemini AI"""
+    genai.configure(api_key=settings.GEMINI_API_KEY)
+    
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    
+    prompt = f"""{SYSTEM_PROMPT}
+
+{build_user_prompt(survey)}
+
+IMPORTANT: Respond ONLY with valid JSON, no additional text or markdown."""
+    
+    response = model.generate_content(
+        prompt,
+        generation_config=genai.types.GenerationConfig(
+            temperature=0.7,
+            max_output_tokens=4000,
+        )
+    )
+    
+    # Extract JSON from response
+    response_text = response.text
+    # Clean up if wrapped in markdown code block
+    if "```json" in response_text:
+        response_text = response_text.split("```json")[1].split("```")[0]
+    elif "```" in response_text:
+        response_text = response_text.split("```")[1].split("```")[0]
+    
+    result = json.loads(response_text.strip())
     
     recommendations = []
     for rec in result["recommendations"]:
@@ -328,7 +380,21 @@ def generate_demo_recommendations(survey: SurveyResponse) -> RecommendationRespo
 async def get_recommendations(survey: SurveyResponse) -> RecommendationResponse:
     """Get AI recommendations - uses real AI if API key available, otherwise demo mode"""
     
-    # Check if API keys are configured
+    # Check if demo mode is enabled
+    if settings.AI_DEMO_MODE:
+        print("AI Demo mode enabled, using demo recommendations")
+        return generate_demo_recommendations(survey)
+    
+    # Try Gemini first (default provider)
+    if settings.AI_PROVIDER == "gemini" and settings.GEMINI_API_KEY:
+        try:
+            print("Using Gemini AI for recommendations...")
+            return await get_recommendations_gemini(survey)
+        except Exception as e:
+            print(f"Gemini API error: {e}, falling back to demo mode")
+            return generate_demo_recommendations(survey)
+    
+    # Try Anthropic
     if settings.AI_PROVIDER == "anthropic" and settings.ANTHROPIC_API_KEY:
         try:
             return await get_recommendations_anthropic(survey)
@@ -336,6 +402,7 @@ async def get_recommendations(survey: SurveyResponse) -> RecommendationResponse:
             print(f"Anthropic API error: {e}, falling back to demo mode")
             return generate_demo_recommendations(survey)
     
+    # Try OpenAI
     if settings.OPENAI_API_KEY:
         try:
             return await get_recommendations_openai(survey)
